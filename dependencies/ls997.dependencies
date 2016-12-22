@@ -1,18 +1,18 @@
 [
  {
-   "remote":      "emotroid",
+   "remote":      "emotroidv20",
    "repository":  "EmotionV20/android_device_lge_ls997",
    "target_path": "device/lge/ls997",
    "branch":      "nougat"
  },
  {
-   "remote":      "emotroid",
+   "remote":      "emotroidv20",
    "repository":  "EmotionV20/android_device_lge_v20-common",
    "target_path": "device/lge/v20-common",
    "branch":      "nougat"
  },
  {
-   "remote":      "emotroid",
+   "remote":      "emotroidv20",
    "repository":  "EmotionV20/android_kernel_lge_msm8996",
    "target_path": "kernel/lge/msm8996",
    "branch":      "nougat"
@@ -42,7 +42,7 @@
    "branch":      "cm-14.1"
  },
  {
-   "remote":      "emotroid",
+   "remote":      "emotroidv20",
    "repository":  "EmotionV20/proprietary_vendor_lge",
    "target_path": "vendor/lge",
    "branch":      "nougat"
