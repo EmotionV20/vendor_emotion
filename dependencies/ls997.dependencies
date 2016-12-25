@@ -12,10 +12,10 @@
    "branch":      "nougat"
  },
  {
-   "remote":      "emotroidv20",
+   "remote":      "emotroidker",
    "repository":  "EmotionV20/android_kernel_lge_msm8996",
    "target_path": "kernel/lge/msm8996",
-   "branch":      "nougat"
+   "branch":      "cm-14.0"
  },
  {
    "remote":      "emotroid",
