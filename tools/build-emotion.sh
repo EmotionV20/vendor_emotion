@@ -20,14 +20,15 @@
 
 usage() {
     echo -e "${bldblu}Usage:${bldcya}"
-    echo -e "  build-emotion.sh [options] device"
+    echo -e "  build-emotion.sh [options] device [user|userdebug|eng]"
     echo ""
     echo -e "${bldblu}  Options:${bldcya}"
     echo -e "    -a  Disable ADB authentication and set root access to Apps and ADB"
     echo -e "    -b  Build a single APK"
     echo -e "    -c# Cleaning options before build:"
-    echo -e "        1 - Run make clean"
-    echo -e "        2 - Run make installclean"
+    echo -e "        1 - Run make clean and continue"
+    echo -e "        2 - Run make installclean and continue"
+    echo -e "        3 - Run make clean/clobber and exit"
     echo -e "    -d  Build rom without ccache"
     echo -e "    -e# Extra build output options:"
     echo -e "        1 - Verbose build output"
@@ -37,7 +38,10 @@ usage() {
     echo -e "    -k  Rewrite roomservice after dependencies update"
     echo -e "    -l  Optimizations for devices with low-RAM"
     echo -e "    -o# Only build:"
-    echo -e "        1 - Boot Image"
+    echo -e "        1 - Boot ZIP"
+    echo -e "        2 - Boot Image"
+    echo -e "        3 - Recovery Image"
+    echo -e "        4 - Boot and Recovery Images"
     echo -e "    -r  Reset source tree before build"
     echo -e "    -s# Sync options before build:"
     echo -e "        0 - Force sync"
@@ -67,12 +71,12 @@ ulimit -s unlimited
 
 
 # EMOTION version
-export EMOTION_VERSION_MAJOR="NG"
-export EMOTION_VERSION_MINOR="beta32-r1"
+export EMOTION_VERSION_MAJOR=$(date -u +%Y%m%d)
+export EMOTION_VERSION_MINOR="R1"
 if [ -z ${EMOTION_VERSION_MAINTENANCE} ]; then
-    export EMOTION_VERSION_MAINTENANCE="Unofficial"
+    export EMOTION_VERSION_MAINTENANCE="UNOFFICIAL"
 fi
-# Acceptable maintenance versions are; Stable, Official, Nightly or Unofficial
+# Acceptable maintenance versions are; STABLE, OFFICIAL, NIGHTLY or UNOFFICIAL
 
 
 # Default global variable values with preference to environmant.
@@ -176,10 +180,19 @@ while getopts "abc:de:ij:klo:rs:w:" opt; do
 done
 
 shift $((OPTIND-1))
-if [ "$#" -ne 1 ]; then
+if [ "$#" -ne 1 ] && [ "$#" -ne 2 ]; then
     usage
 fi
 device="$1"
+
+case "$2" in
+user|userdebug|eng)
+    variant="$2"
+    ;;
+*)
+    variant="userdebug"
+    ;;
+esac
 
 
 # Ccache options
@@ -226,10 +239,17 @@ if [ "$opt_clean" -eq 1 ]; then
     echo ""
 elif [ "$opt_clean" -eq 2 ]; then
     . build/envsetup.sh
-    lunch "emotion_$device-userdebug"
+    lunch "emotion_$device-$variant"
     make installclean >/dev/null
     echo -e "${bldcya}Output directory is: ${bldred}Dirty${rst}"
     echo ""
+elif [ "$opt_clean" -eq 3 ]; then
+    echo -e "${bldcya}Cleaning output directory${rst}"
+    make clean >/dev/null
+    make clobber >/dev/null
+    echo -e "${bldcya}Output directory is: ${bldgrn}Clean${rst}"
+    echo ""
+    exit 0
 else
     if [ -d "$OUTDIR/target" ]; then
         echo -e "${bldcya}Output directory is: ${bldylw}Untouched${rst}"
@@ -252,7 +272,7 @@ if [ "$opt_build" -ne 0 ]; then
     trap 'abort' 0
     set -e
     . build/envsetup.sh
-    lunch "emotion_$device-userdebug"
+    lunch "emotion_$device-$variant"
     echo -e "${bldcya}What application do you want compile?${rst}"
     read REPLAY
     make "$REPLAY"
@@ -355,7 +375,7 @@ rm -f "$OUTDIR"/target/product/"$device"/obj/KERNEL_OBJ/.version
 # Lunch device
 echo ""
 echo -e "${bldcya}Lunching device${rst}"
-lunch "emotion_$device-userdebug"
+lunch "emotion_$device-$variant"
 
 
 # Get extra options for build
@@ -394,9 +414,21 @@ fi
 
 # Start compilation
 if [ "$opt_only" -eq 1 ]; then
-    echo -e "${bldcya}Starting compilation: ${bldgrn}Building Boot Image only${rst}"
+    echo -e "${bldcya}Starting compilation: ${bldgrn}Building Boot ZIP only${rst}"
     echo ""
     make -j$opt_jobs$opt_v$opt_i bootzip
+elif [ "$opt_only" -eq 2 ]; then
+    echo -e "${bldcya}Starting compilation: ${bldgrn}Building Boot Image only${rst}"
+    echo ""
+    make -j$opt_jobs$opt_v$opt_i bootimage
+elif [ "$opt_only" -eq 3 ]; then
+    echo -e "${bldcya}Starting compilation: ${bldgrn}Building Recovery Image only${rst}"
+    echo ""
+    make -j$opt_jobs$opt_v$opt_i recoveryimage
+elif [ "$opt_only" -eq 4 ]; then
+    echo -e "${bldcya}Starting compilation: ${bldgrn}Building Boot and Recovery Images only${rst}"
+    echo ""
+    make -j$opt_jobs$opt_v$opt_i bootimage recoveryimage
 else
     if [ -z "$EMOTION_VERSION_MINOR" ]; then
         echo -e "${bldcya}Starting compilation: ${bldgrn}Building ${bldylw}EMOTION-ROM ${bldmag}$EMOTION_VERSION_MAJOR ${bldred}$EMOTION_MAINTENANCE${rst}"
