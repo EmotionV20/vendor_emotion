@@ -18,8 +18,8 @@
    "branch":      "cm-14.0"
  },
  {
-   "remote":      "emotroid",
-   "repository":  "Emotroid-Rom/android_device_qcom_common",
+   "remote":      "emotion",
+   "repository":  "EmotionOS/android_device_qcom_common",
    "target_path": "device/qcom/common",
    "branch":      "nougat"
  },
